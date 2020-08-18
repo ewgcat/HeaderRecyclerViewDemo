@@ -1,13 +1,13 @@
 apply plugin:'com.github.dcendents.android-maven'
 apply plugin:'com.jfrog.bintray'
-version = "1.0.1"
+version = "1.0.2"
 
 group = "com.lsh.headerrecyclerview"
 def username="lishuaihua"
 def _email="lsh199032@gmail.com"
 
-def siteUrl = 'https://github.com/ewgcat/HeaderViewAdapter.git'    // project homepage
-def gitUrl = 'https://github.com/ewgcat/HeaderViewAdapter.git'
+def siteUrl = 'https://github.com/ewgcat/HeaderRecyclerViewDemo'    // project homepage
+def gitUrl = 'https://github.com/ewgcat/HeaderRecyclerViewDemo.git'
 // project git
 install {
     repositories.mavenInstaller {

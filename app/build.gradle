@@ -21,6 +21,6 @@ android {
 dependencies {
 
 //    api project(":HeaderRecyclerView")
-    api 'com.lsh.headerrecyclerview:HeaderRecyclerView:+'
+    api 'com.lsh.headerrecyclerview:HeaderRecyclerView:1.0.2'
 
 }
