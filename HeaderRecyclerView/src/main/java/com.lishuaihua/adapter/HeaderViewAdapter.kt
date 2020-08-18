@@ -1,142 +1,116 @@
-package com.lishuaihua.adapter;
+package com.lishuaihua.adapter
 
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.View
+import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.AdapterDataObserver
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import java.util.*
 
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class HeaderViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
-    //被包装的Adapter。
-    private RecyclerView.Adapter mAdapter;
-
+class HeaderViewAdapter(  //被包装的Adapter。
+        private var mAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>?) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     //用于存放HeaderView
-    private final List<FixedViewInfo> mHeaderViewInfos = new ArrayList<>();
+    private val mHeaderViewInfos: MutableList<FixedViewInfo> = ArrayList()
 
     //用于存放FooterView
-    private final List<FixedViewInfo> mFooterViewInfos = new ArrayList<>();
+    private val mFooterViewInfos: MutableList<FixedViewInfo> = ArrayList()
 
     //用于监听被包装的Adapter的数据变化的监听器。它将被包装的Adapter的数据变化映射成HeaderViewAdapter的变化。
-    private RecyclerView.AdapterDataObserver mObserver = new RecyclerView.AdapterDataObserver() {
-        @Override
-        public void onChanged() {
-            notifyDataSetChanged();
+    private val mObserver: AdapterDataObserver = object : AdapterDataObserver() {
+        override fun onChanged() {
+            notifyDataSetChanged()
         }
 
-        @Override
-        public void onItemRangeChanged(int positionStart, int itemCount) {
-            super.onItemRangeChanged(positionStart, itemCount);
+        override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
+            super.onItemRangeChanged(positionStart, itemCount)
         }
 
-        @Override
-        public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
-            notifyItemRangeChanged(getHeadersCount() + positionStart, itemCount, payload);
+        override fun onItemRangeChanged(positionStart: Int, itemCount: Int, payload: Any?) {
+            notifyItemRangeChanged(headersCount + positionStart, itemCount, payload)
         }
 
-        @Override
-        public void onItemRangeInserted(int positionStart, int itemCount) {
-            notifyItemRangeInserted(getHeadersCount() + positionStart, itemCount);
+        override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+            notifyItemRangeInserted(headersCount + positionStart, itemCount)
         }
 
-        @Override
-        public void onItemRangeRemoved(int positionStart, int itemCount) {
-            notifyItemRangeRemoved(getHeadersCount() + positionStart, itemCount);
+        override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
+            notifyItemRangeRemoved(headersCount + positionStart, itemCount)
         }
 
-        @Override
-        public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-            notifyItemMoved(getHeadersCount() + fromPosition, getHeadersCount() + toPosition);
-        }
-    };
-
-    public HeaderViewAdapter(RecyclerView.Adapter adapter) {
-        mAdapter = adapter;
-        if (mAdapter != null) {
-            //注册mAdapter的数据变化监听
-            mAdapter.registerAdapterDataObserver(mObserver);
+        override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
+            notifyItemMoved(headersCount + fromPosition, headersCount + toPosition)
         }
     }
 
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         // 根据viewType查找对应的HeaderView 或 FooterView。如果没有找到则表示该viewType是普通的列表项。
-        View view = findViewForInfos(viewType);
-        if (view != null) {
-            return new ViewHolder(view);
+        val view = findViewForInfos(viewType)
+        return if (view != null) {
+            ViewHolder(view)
         } else {
             //交由mAdapter处理。
-            return mAdapter.onCreateViewHolder(parent, viewType);
+            mAdapter!!.onCreateViewHolder(parent, viewType)
         }
     }
 
-    @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         // 如果是HeaderView 或者是 FooterView则不绑定数据。
         // 因为HeaderView和FooterView是由外部传进来的，它们不由列表去更新。
         if (isHeader(position) || isFooter(position)) {
-            return;
+            return
         }
 
         //将列表实际的position调整成mAdapter对应的position。
         //交由mAdapter处理。
-        int adjPosition = position - getHeadersCount();
-        mAdapter.onBindViewHolder(holder, adjPosition);
+        val adjPosition = position - headersCount
+        mAdapter!!.onBindViewHolder(holder, adjPosition)
     }
 
-    @Override
-    public int getItemCount() {
-        return mHeaderViewInfos.size() + mFooterViewInfos.size()
-                + (mAdapter == null ? 0 : mAdapter.getItemCount());
+    override fun getItemCount(): Int {
+        return (mHeaderViewInfos.size + mFooterViewInfos.size
+                + if (mAdapter == null) 0 else mAdapter!!.itemCount)
     }
 
-    @Override
-    public int getItemViewType(int position) {
+    override fun getItemViewType(position: Int): Int {
         //如果当前item是HeaderView，则返回HeaderView对应的itemViewType。
         if (isHeader(position)) {
-            return mHeaderViewInfos.get(position).itemViewType;
+            return mHeaderViewInfos[position].itemViewType
         }
 
         //如果当前item是HeaderView，则返回HeaderView对应的itemViewType。
         if (isFooter(position)) {
-            return mFooterViewInfos.get(position - mHeaderViewInfos.size() - mAdapter.getItemCount()).itemViewType;
+            return mFooterViewInfos[position - mHeaderViewInfos.size - mAdapter!!.itemCount].itemViewType
         }
 
         //将列表实际的position调整成mAdapter对应的position。
         //交由mAdapter处理。
-        int adjPosition = position - getHeadersCount();
-        return mAdapter.getItemViewType(adjPosition);
+        val adjPosition = position - headersCount
+        return mAdapter!!.getItemViewType(adjPosition)
     }
-
+    /**
+     * 获取被包装的adapter
+     *
+     * @return
+     *///注册mAdapter的数据变化监听//被包装的adapter不能是HeaderViewAdapter。
     /**
      * 设置被包装的adapter。同一个adapter对象不能设置多次。
      *
      * @param adapter
      */
-    public void setAdapter(RecyclerView.Adapter adapter) {
-        if (adapter instanceof HeaderViewAdapter) {
-            //被包装的adapter不能是HeaderViewAdapter。
-            throw new IllegalArgumentException("Cannot wrap a HeaderViewAdapter");
+    var adapter: RecyclerView.Adapter<RecyclerView.ViewHolder>?
+        get() = mAdapter
+        set(adapter) {
+            require(adapter !is HeaderViewAdapter) {
+                //被包装的adapter不能是HeaderViewAdapter。
+                "Cannot wrap a HeaderViewAdapter"
+            }
+            mAdapter = adapter
+            if (mAdapter != null) {
+                //注册mAdapter的数据变化监听
+                mAdapter!!.registerAdapterDataObserver(mObserver)
+            }
+            notifyDataSetChanged()
         }
-        mAdapter = adapter;
-        if (mAdapter != null) {
-            //注册mAdapter的数据变化监听
-            mAdapter.registerAdapterDataObserver(mObserver);
-        }
-        notifyDataSetChanged();
-    }
-
-    /**
-     * 获取被包装的adapter
-     *
-     * @return
-     */
-    public RecyclerView.Adapter getAdapter() {
-        return mAdapter;
-    }
 
     /**
      * 判断当前位置是否是头部View。
@@ -144,8 +118,8 @@ public class HeaderViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      * @param position 这里的position是整个列表(包含HeaderView和FooterView)的position。
      * @return
      */
-    public boolean isHeader(int position) {
-        return position < getHeadersCount();
+    fun isHeader(position: Int): Boolean {
+        return position < headersCount
     }
 
     /**
@@ -154,8 +128,8 @@ public class HeaderViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      * @param position 这里的position是整个列表(包含HeaderView和FooterView)的position。
      * @return
      */
-    public boolean isFooter(int position) {
-        return getItemCount() - position <= getFootersCount();
+    fun isFooter(position: Int): Boolean {
+        return itemCount - position <= footersCount
     }
 
     /**
@@ -163,35 +137,33 @@ public class HeaderViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      *
      * @return
      */
-    public int getHeadersCount() {
-        return mHeaderViewInfos.size();
-    }
+    val headersCount: Int
+        get() = mHeaderViewInfos.size
 
     /**
      * 获取FooterView的个数
      *
      * @return
      */
-    public int getFootersCount() {
-        return mFooterViewInfos.size();
-    }
+    val footersCount: Int
+        get() = mFooterViewInfos.size
 
     /**
      * 添加HeaderView
      *
      * @param view
      */
-    public void addHeaderView(View view) {
-        addHeaderView(view, generateUniqueViewType());
+    fun addHeaderView(view: View) {
+        addHeaderView(view, generateUniqueViewType())
     }
 
-    private void addHeaderView(View view, int viewType) {
+    private fun addHeaderView(view: View, viewType: Int) {
         //包装HeaderView数据并添加到列表
-        FixedViewInfo info = new FixedViewInfo();
-        info.view = view;
-        info.itemViewType = viewType;
-        mHeaderViewInfos.add(info);
-        notifyDataSetChanged();
+        val info: FixedViewInfo = FixedViewInfo()
+        info.view = view
+        info.itemViewType = viewType
+        mHeaderViewInfos.add(info)
+        notifyDataSetChanged()
     }
 
     /**
@@ -200,15 +172,15 @@ public class HeaderViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      * @param view
      * @return 是否删除成功
      */
-    public boolean removeHeaderView(View view) {
-        for (FixedViewInfo info : mHeaderViewInfos) {
-            if (info.view == view) {
-                mHeaderViewInfos.remove(info);
-                notifyDataSetChanged();
-                return true;
+    fun removeHeaderView(view: View): Boolean {
+        for (info in mHeaderViewInfos) {
+            if (info.view === view) {
+                mHeaderViewInfos.remove(info)
+                notifyDataSetChanged()
+                return true
             }
         }
-        return false;
+        return false
     }
 
     /**
@@ -216,17 +188,17 @@ public class HeaderViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      *
      * @param view
      */
-    public void addFooterView(View view) {
-        addFooterView(view, generateUniqueViewType());
+    fun addFooterView(view: View) {
+        addFooterView(view, generateUniqueViewType())
     }
 
-    private void addFooterView(View view, int viewType) {
+    private fun addFooterView(view: View, viewType: Int) {
         // 包装FooterView数据并添加到列表
-        FixedViewInfo info = new FixedViewInfo();
-        info.view = view;
-        info.itemViewType = viewType;
-        mFooterViewInfos.add(info);
-        notifyDataSetChanged();
+        val info: FixedViewInfo = FixedViewInfo()
+        info.view = view
+        info.itemViewType = viewType
+        mFooterViewInfos.add(info)
+        notifyDataSetChanged()
     }
 
     /**
@@ -235,15 +207,15 @@ public class HeaderViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      * @param view
      * @return 是否删除成功
      */
-    public boolean removeFooterView(View view) {
-        for (FixedViewInfo info : mFooterViewInfos) {
-            if (info.view == view) {
-                mFooterViewInfos.remove(info);
-                notifyDataSetChanged();
-                return true;
+    fun removeFooterView(view: View): Boolean {
+        for (info in mFooterViewInfos) {
+            if (info.view === view) {
+                mFooterViewInfos.remove(info)
+                notifyDataSetChanged()
+                return true
             }
         }
-        return false;
+        return false
     }
 
     /**
@@ -251,24 +223,24 @@ public class HeaderViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      *
      * @return
      */
-    private int generateUniqueViewType() {
-        int count = getItemCount();
+    private fun generateUniqueViewType(): Int {
+        val count = itemCount
         while (true) {
             //生成一个随机数。
-            int viewType = (int) (Math.random() * Integer.MAX_VALUE) + 1;
+            val viewType = (Math.random() * Int.MAX_VALUE).toInt() + 1
 
             //判断该viewType是否已使用。
-            boolean isExist = false;
-            for (int i = 0; i < count; i++) {
+            var isExist = false
+            for (i in 0 until count) {
                 if (viewType == getItemViewType(i)) {
-                    isExist = true;
-                    break;
+                    isExist = true
+                    break
                 }
             }
 
             //判断该viewType还没被使用，则返回。否则进行下一次循环，重新生成随机数。
             if (!isExist) {
-                return viewType;
+                return viewType
             }
         }
     }
@@ -279,107 +251,100 @@ public class HeaderViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      * @param viewType 查找的viewType
      * @return
      */
-    private View findViewForInfos(int viewType) {
-        for (FixedViewInfo info : mHeaderViewInfos) {
+    private fun findViewForInfos(viewType: Int): View? {
+        for (info in mHeaderViewInfos) {
             if (info.itemViewType == viewType) {
-                return info.view;
+                return info.view
             }
         }
-
-        for (FixedViewInfo info : mFooterViewInfos) {
+        for (info in mFooterViewInfos) {
             if (info.itemViewType == viewType) {
-                return info.view;
+                return info.view
             }
         }
-
-        return null;
+        return null
     }
 
-    @Override
-    public void onViewAttachedToWindow(RecyclerView.ViewHolder holder) {
-        if (holder instanceof ViewHolder) {
-            super.onViewAttachedToWindow(holder);
+    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
+        if (holder is ViewHolder) {
+            super.onViewAttachedToWindow(holder)
         } else {
-            mAdapter.onViewAttachedToWindow(holder);
+            mAdapter!!.onViewAttachedToWindow(holder)
         }
 
         //处理StaggeredGridLayout，保证HeaderView和FooterView占满一行。
         if (isStaggeredGridLayout(holder)) {
-            handleLayoutIfStaggeredGridLayout(holder, holder.getLayoutPosition());
+            handleLayoutIfStaggeredGridLayout(holder, holder.layoutPosition)
         }
     }
 
-    private boolean isStaggeredGridLayout(RecyclerView.ViewHolder holder) {
-        ViewGroup.LayoutParams layoutParams = holder.itemView.getLayoutParams();
-        if (layoutParams != null && layoutParams instanceof StaggeredGridLayoutManager.LayoutParams) {
-            return true;
-        }
-        return false;
+    private fun isStaggeredGridLayout(holder: RecyclerView.ViewHolder): Boolean {
+        val layoutParams = holder.itemView.layoutParams
+        return if (layoutParams != null && layoutParams is StaggeredGridLayoutManager.LayoutParams) {
+            true
+        } else false
     }
 
-    private void handleLayoutIfStaggeredGridLayout(RecyclerView.ViewHolder holder, int position) {
+    private fun handleLayoutIfStaggeredGridLayout(holder: RecyclerView.ViewHolder, position: Int) {
         if (isHeader(position) || isFooter(position)) {
-            StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams)
-                    holder.itemView.getLayoutParams();
-            p.setFullSpan(true);
+            val p = holder.itemView.layoutParams as StaggeredGridLayoutManager.LayoutParams
+            p.isFullSpan = true
         }
     }
 
-    @Override
-    public void onViewDetachedFromWindow(RecyclerView.ViewHolder holder) {
-        if (holder instanceof ViewHolder) {
-            super.onViewDetachedFromWindow(holder);
+    override fun onViewDetachedFromWindow(holder: RecyclerView.ViewHolder) {
+        if (holder is ViewHolder) {
+            super.onViewDetachedFromWindow(holder)
         } else {
-            mAdapter.onViewDetachedFromWindow(holder);
+            mAdapter!!.onViewDetachedFromWindow(holder)
         }
     }
 
-    @Override
-    public boolean onFailedToRecycleView(RecyclerView.ViewHolder holder) {
-        if (holder instanceof ViewHolder) {
-            return super.onFailedToRecycleView(holder);
+    override fun onFailedToRecycleView(holder: RecyclerView.ViewHolder): Boolean {
+        return if (holder is ViewHolder) {
+            super.onFailedToRecycleView(holder)
         } else {
-            return mAdapter.onFailedToRecycleView(holder);
+            mAdapter!!.onFailedToRecycleView(holder)
         }
     }
 
-    @Override
-    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
-        if(mAdapter != null) {
-            mAdapter.onAttachedToRecyclerView(recyclerView);
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        if (mAdapter != null) {
+            mAdapter!!.onAttachedToRecyclerView(recyclerView)
         }
     }
 
-    @Override
-    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
-        if(mAdapter != null) {
-            mAdapter.onDetachedFromRecyclerView(recyclerView);
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        if (mAdapter != null) {
+            mAdapter!!.onDetachedFromRecyclerView(recyclerView)
         }
     }
 
-    @Override
-    public void onViewRecycled(RecyclerView.ViewHolder holder) {
-        if (holder instanceof ViewHolder) {
-            super.onViewRecycled(holder);
+    override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
+        if (holder is ViewHolder) {
+            super.onViewRecycled(holder)
         } else {
-            mAdapter.onViewRecycled(holder);
+            mAdapter!!.onViewRecycled(holder)
         }
     }
 
     /**
      * 用于包装HeaderView和FooterView的数据类
      */
-    private class FixedViewInfo {
+    private inner class FixedViewInfo {
         //保存HeaderView或FooterView
-        View view;
+        var view: View? = null
 
         //保存HeaderView或FooterView对应的viewType。
-        int itemViewType;
+        var itemViewType = 0
     }
 
-    private static class ViewHolder extends RecyclerView.ViewHolder {
-        ViewHolder(View itemView) {
-            super(itemView);
+    private class ViewHolder internal constructor(itemView: View?) : RecyclerView.ViewHolder(itemView!!)
+
+    init {
+        if (mAdapter != null) {
+            //注册mAdapter的数据变化监听
+            mAdapter!!.registerAdapterDataObserver(mObserver)
         }
     }
 }

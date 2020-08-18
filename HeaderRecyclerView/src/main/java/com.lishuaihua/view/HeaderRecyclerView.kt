@@ -1,61 +1,50 @@
-package com.lishuaihua.view;
+package com.lishuaihua.view
 
-import android.content.Context;
-import android.util.AttributeSet;
-import android.view.View;
+import android.content.Context
+import android.util.AttributeSet
+import android.view.View
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.lishuaihua.adapter.HeaderViewAdapter
+import com.lishuaihua.layoutmanager.HeaderViewGridLayoutManager
 
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.lishuaihua.adapter.HeaderViewAdapter;
-import com.lishuaihua.layoutmanager.HeaderViewGridLayoutManager;
-
-
-public class HeaderRecyclerView extends RecyclerView {
-
+class HeaderRecyclerView : RecyclerView {
     //内置的HeaderViewAdapter包装对象。
-    private HeaderViewAdapter mAdapter;
+    private var mAdapter: HeaderViewAdapter? = null
 
-    public HeaderRecyclerView(Context context) {
-        super(context);
-        wrapHeaderAdapter();
+    constructor(context: Context?) : super(context!!) {
+        wrapHeaderAdapter()
     }
 
-    public HeaderRecyclerView(Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-        wrapHeaderAdapter();
+    constructor(context: Context?, attrs: AttributeSet?) : super(context!!, attrs) {
+        wrapHeaderAdapter()
     }
 
-    public HeaderRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-        wrapHeaderAdapter();
+    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(context!!, attrs, defStyle) {
+        wrapHeaderAdapter()
     }
 
-    @Override
-    public void setLayoutManager(LayoutManager layout) {
+    override fun setLayoutManager(layout: LayoutManager?) {
         //如果要使用GridLayoutManager的话，只能使用HeaderViewGridLayoutManager。
-        if (layout instanceof GridLayoutManager && !(layout instanceof HeaderViewGridLayoutManager)) {
-            super.setLayoutManager(new HeaderViewGridLayoutManager(getContext(),
-                    ((GridLayoutManager) layout).getSpanCount(), mAdapter));
+        if (layout is GridLayoutManager && layout !is HeaderViewGridLayoutManager) {
+            super.setLayoutManager(HeaderViewGridLayoutManager(context,
+                    layout.spanCount, mAdapter))
         } else {
-            super.setLayoutManager(layout);
+            super.setLayoutManager(layout)
         }
     }
 
-    private void wrapHeaderAdapter() {
-        mAdapter = new HeaderViewAdapter(super.getAdapter());
-        super.setAdapter(mAdapter);
+    private fun wrapHeaderAdapter() {
+        mAdapter = HeaderViewAdapter(super.getAdapter())
+        super.setAdapter(mAdapter)
     }
 
-    @Override
-    public void setAdapter(Adapter adapter) {
-        mAdapter.setAdapter(adapter);
+    override fun setAdapter(adapter: Adapter<RecyclerView.ViewHolder>?) {
+        mAdapter!!.adapter = adapter
     }
 
-    @Override
-    public Adapter getAdapter() {
-        return mAdapter.getAdapter();
+    override fun getAdapter(): Adapter<*>? {
+        return mAdapter!!.adapter
     }
 
     /**
@@ -63,26 +52,24 @@ public class HeaderRecyclerView extends RecyclerView {
      *
      * @return
      */
-    public int getHeadersCount() {
-        return mAdapter.getHeadersCount();
-    }
+    val headersCount: Int
+        get() = mAdapter!!.headersCount
 
     /**
      * 获取FooterView的个数
      *
      * @return
      */
-    public int getFootersCount() {
-        return mAdapter.getFootersCount();
-    }
+    val footersCount: Int
+        get() = mAdapter!!.footersCount
 
     /**
      * 添加HeaderView
      *
      * @param view
      */
-    public void addHeaderView(View view) {
-        mAdapter.addHeaderView(view);
+    fun addHeaderView(view: View?) {
+        mAdapter!!.addHeaderView(view!!)
     }
 
     /**
@@ -91,8 +78,8 @@ public class HeaderRecyclerView extends RecyclerView {
      * @param view
      * @return 是否删除成功
      */
-    public boolean removeHeaderView(View view) {
-        return mAdapter.removeHeaderView(view);
+    fun removeHeaderView(view: View?): Boolean {
+        return mAdapter!!.removeHeaderView(view!!)
     }
 
     /**
@@ -100,8 +87,8 @@ public class HeaderRecyclerView extends RecyclerView {
      *
      * @param view
      */
-    public void addFooterView(View view) {
-        mAdapter.addFooterView(view);
+    fun addFooterView(view: View?) {
+        mAdapter!!.addFooterView(view!!)
     }
 
     /**
@@ -110,7 +97,7 @@ public class HeaderRecyclerView extends RecyclerView {
      * @param view
      * @return 是否删除成功
      */
-    public boolean removeFooterView(View view) {
-        return mAdapter.removeFooterView(view);
+    fun removeFooterView(view: View?): Boolean {
+        return mAdapter!!.removeFooterView(view!!)
     }
 }
