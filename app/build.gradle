@@ -20,6 +20,7 @@ android {
 
 dependencies {
 //    api project(":HeaderRecyclerView")
-    api 'com.lsh.headerrecyclerview:HeaderRecyclerView:1.0.2'
+//    api 'com.lsh.headerrecyclerview:HeaderRecyclerView:1.0.2'
+    api 'com.github.ewgcat:HeaderRecyclerViewDemo:1.0.0'
 
 }
